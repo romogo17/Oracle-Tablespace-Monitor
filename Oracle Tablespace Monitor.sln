@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oracle Tablespace Monitor", "Oracle Tablespace Monitor\Oracle Tablespace Monitor.csproj", "{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}.Debug|x86.ActiveCfg = Debug|x86
+		{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}.Debug|x86.Build.0 = Debug|x86
+		{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}.Release|x86.ActiveCfg = Release|x86
+		{BF87FDAB-4BBE-448B-A4B2-A761D116C34B}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A441E16C-73B5-42BC-AFA1-C2C0A6FA6DD3}
+	EndGlobalSection
+EndGlobal
