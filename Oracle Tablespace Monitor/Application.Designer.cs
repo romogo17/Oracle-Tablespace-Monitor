@@ -18,6 +18,7 @@
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Threading;
+    using System.Linq;
 
     partial class Application
     {
@@ -87,6 +88,7 @@
             // 
             // myLayout
             // 
+            this.myLayout.AutoScroll = true;
             this.myLayout.Location = new System.Drawing.Point(12, 45);
             this.myLayout.Name = "myLayout";
             this.myLayout.Size = new System.Drawing.Size(918, 498);
@@ -151,6 +153,31 @@
         {
             this.tbs = new List<Tablespace>();
 
+            DataSet ds = db_getTablespaces();
+
+            bool flag = false;
+            if (ds.Tables.Count == 0) flag = true;
+            else if (!(ds.Tables[0].Rows.Count > 0)) flag = true;
+            if (!flag)
+            {
+                DataTable dt = ds.Tables[0];
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    tbs.Add(new Tablespace
+                    {
+                        Visible = true,
+                        Name = dt.Rows[i].Field<string>("TABLESPACE_NAME"),
+                        Max = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_SIZE")/1024/1024,4)),
+                        Free = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_FREE") / 1024 / 1024, 4)),
+                        Used = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_USED") / 1024 / 1024, 4)),
+                        RateOfGrowthInBytes = 50,
+                        DaysToHwm = 5,
+                        DaysToMax = 7
+                    });
+                }
+            }
+            return !flag;
+
 
             /*  
              *  
@@ -161,7 +188,7 @@
              *  
              */
 
-            tbs.Add(new Tablespace
+            /*tbs.Add(new Tablespace
             {
                 Visible = true,
                 Name = "USERS",
@@ -170,7 +197,7 @@
                 Used = 70,
                 RateOfGrowthInBytes = 50,
                 DaysToHwm = 5,
-                DaysToMax = 7,
+                DaysToMax = 7
             });
 
             tbs.Add(new Tablespace
@@ -182,8 +209,8 @@
                 Used = 100,
                 RateOfGrowthInBytes = 50,
                 DaysToHwm = 5,
-                DaysToMax = 7,
-            });
+                DaysToMax = 7
+            });*/
 
             return true;
         }
@@ -192,12 +219,12 @@
         {
             using (OracleConnection objConn = new OracleConnection(ConfigurationManager.AppSettings["connectionString"]))
             {
-                DataSet tablespace_stats = new DataSet("tablespaces");
+                DataSet data = new DataSet("alerta");
 
                 // Create and execute the command
                 OracleCommand objCmd = new OracleCommand();
                 objCmd.Connection = objConn;
-                objCmd.CommandText = "get_tablespace_stats";
+                objCmd.CommandText = "get_tablespace_info";
                 objCmd.CommandType = CommandType.StoredProcedure;
 
                 // Set parameters
@@ -211,7 +238,7 @@
 
                     OracleDataAdapter a = new OracleDataAdapter(objCmd);
                     a.TableMappings.Add("MyTable", "sample_table"); // possible need for this
-                    a.Fill(tablespace_stats);
+                    a.Fill(data);
 
                     //return sqlInfo;
                     //System.Console.WriteLine("Memory Usage is {0}", retParam.Value);
@@ -223,7 +250,7 @@
 
                 objConn.Close();
                 objConn.Dispose();
-                return tablespace_stats;
+                return data;
             }
         }
 
