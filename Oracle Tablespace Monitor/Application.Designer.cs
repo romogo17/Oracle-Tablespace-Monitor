@@ -230,6 +230,40 @@
 
         private DataSet db_getTablespaces()
         {
+            /*
+                --http://dbaforums.org/oracle/lofiversion/index.php?t13112.html
+                CREATE OR REPLACE FUNCTION get_tablespace_info
+                  RETURN SYS_REFCURSOR IS
+                  cr SYS_REFCURSOR;
+                  BEGIN
+                    OPEN cr FOR
+                    SELECT
+                      ts.tablespace_name,
+                      TRUNC("SIZE(B)", 2)                                  "BYTES_SIZE",
+                      TRUNC(fr."FREE(B)", 2)                               "BYTES_FREE",
+                      TRUNC("SIZE(B)" - "FREE(B)", 2)                      "BYTES_USED",
+                      TRUNC((1 - (fr."FREE(B)" / df."SIZE(B)")) * 100, 10) "PCT_USED"
+                    FROM
+                      (SELECT
+                         tablespace_name,
+                         SUM(bytes) "FREE(B)"
+                       FROM dba_free_space
+                       GROUP BY tablespace_name) fr,
+                      (SELECT
+                         tablespace_name,
+                         SUM(bytes)    "SIZE(B)",
+                         SUM(maxbytes) "MAX_EXT"
+                       FROM dba_data_files
+                       GROUP BY tablespace_name) df,
+                      (SELECT tablespace_name
+                       FROM dba_tablespaces) ts
+                    WHERE fr.tablespace_name = df.tablespace_name
+                          AND fr.tablespace_name = ts.tablespace_name;
+                    RETURN CR;
+                  END;
+                /
+             */
+
             using (OracleConnection objConn = new OracleConnection(ConfigurationManager.AppSettings["connectionString"]))
             {
                 DataSet data = new DataSet("alerta");

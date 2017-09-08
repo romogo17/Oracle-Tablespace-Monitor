@@ -173,6 +173,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <Content Include="querys.sql" />
     <None Include="OraTbspMonitorLoading.png" />
   </ItemGroup>
   <ItemGroup>
