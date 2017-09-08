@@ -19,6 +19,7 @@
     using System.ComponentModel;
     using System.Threading;
     using System.Linq;
+    using System.Xml;
 
     partial class Application
     {
@@ -152,7 +153,7 @@
         private bool FetchTablespaces()
         {
             this.tbs = new List<Tablespace>();
-
+            string name_read;
             DataSet ds = db_getTablespaces();
 
             bool flag = false;
@@ -163,54 +164,66 @@
                 DataTable dt = ds.Tables[0];
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
-                    tbs.Add(new Tablespace
+                    name_read = dt.Rows[i].Field<string>("TABLESPACE_NAME");
+
+                    if (name_read != "UNDOTBS1")
                     {
-                        Visible = true,
-                        Name = dt.Rows[i].Field<string>("TABLESPACE_NAME"),
-                        Max = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_SIZE")/1024/1024,4)),
-                        Free = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_FREE") / 1024 / 1024, 4)),
-                        Used = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_USED") / 1024 / 1024, 4)),
-                        RateOfGrowthInBytes = 50,
-                        DaysToHwm = 5,
-                        DaysToMax = 7
-                    });
+                        bool isSystemTB = name_read == "SYSTEM" || name_read == "SYSAUX";
+
+                        tbs.Add(new Tablespace
+                        {
+                            Visible = isSystemTB ? false : true,
+                            Name = name_read,
+                            Max = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_SIZE") / 1024 / 1024, 4)),
+                            Free = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_FREE") / 1024 / 1024, 4)),
+                            Used = Convert.ToDouble(Math.Round(dt.Rows[i].Field<decimal>("BYTES_USED") / 1024 / 1024, 4)),
+                            //RateOfGrowthInMB = 50,
+                            //DaysToHwm = 5,
+                            //DaysToMax = 7
+                        });
+                    }
+
                 }
             }
             return !flag;
+        }
+
+        private bool UpdateUsage()
+        {
+            var directory = new DirectoryInfo(ConfigurationManager.AppSettings["myDir"]);
 
 
-            /*  
-             *  
-             *  Lineas de prueba, debe traer esto de la base de datos, del metodo
-             *  private Dataset db_getTablespaces()
-             *  
-             *  Procesar el Dataset para ir formando la lista
-             *  
-             */
+            var last = directory.GetFiles()
+                         .OrderByDescending(f => f.LastWriteTime)
+                         .First();
 
-            /*tbs.Add(new Tablespace
+            var seccond = directory.GetFiles()
+                         .OrderByDescending(f => f.LastWriteTime)
+                         .Skip(1)
+                         .First();
+
+            XmlDocument doc_last = new XmlDocument();
+            XmlDocument doc_seccond = new XmlDocument();
+            doc_last.Load(directory+"\\"+last.Name);
+            doc_seccond.Load(directory + "\\" + seccond.Name);
+
+            foreach (XmlNode node in doc_last.DocumentElement.SelectSingleNode("/ROWSET"))
             {
-                Visible = true,
-                Name = "USERS",
-                Max = 100,
-                Free = 30,
-                Used = 70,
-                RateOfGrowthInBytes = 50,
-                DaysToHwm = 5,
-                DaysToMax = 7
-            });
+                string tb_name = Convert.ToString(node.FirstChild.InnerText);
+                decimal tb_usage = Convert.ToDecimal(node.ChildNodes[1].InnerText);
+                decimal tb_usage_sub = 0;
 
-            tbs.Add(new Tablespace
-            {
-                Visible = true,
-                Name = "SYSTEM",
-                Max = 200,
-                Free = 100,
-                Used = 100,
-                RateOfGrowthInBytes = 50,
-                DaysToHwm = 5,
-                DaysToMax = 7
-            });*/
+                foreach (XmlNode node_seccond in doc_seccond.DocumentElement.SelectSingleNode("/ROWSET"))
+                {
+                    if (Convert.ToString(node_seccond.FirstChild.InnerText) == tb_name)
+                    {
+                        tb_usage_sub = tb_usage - Convert.ToDecimal(node_seccond.ChildNodes[1].InnerText);
+                        //System.Console.WriteLine(tb_name + " -> " + tb_usage + "->" + tb_usage_sub);
+                    }                    
+                }
+
+                tbs.Find(x => x.Name == tb_name).setRateOfGrothInBytes(tb_usage_sub, hwm);
+            }
 
             return true;
         }
@@ -264,10 +277,14 @@
         {
             this.hwm = Convert.ToDecimal(pct);
 
-            foreach(Tb_Panel pl in myLayout.Controls)
+            foreach (Tablespace tb in tbs)
+            { tb.updatesRatesWithNewHwm(hwm); }
+
+            foreach (Tb_Panel pl in myLayout.Controls)
             {
                 LiveCharts.WinForms.AngularGauge ag = (LiveCharts.WinForms.AngularGauge) pl.Controls[0];
                 ag.Sections[0].FromValue = ag.ToValue * Convert.ToDouble(hwm);
+                pl.Controls[2].Text = pl.tb.DaysToHwm + "d to HWM";
             }
         }
 

@@ -20,9 +20,12 @@ namespace Oracle_Tablespace_Monitor
     {
         public Application()
         {
-            hwm = Decimal.Parse(ConfigurationManager.AppSettings["highWaterMark"])/100;
+            hwm = Decimal.Parse(ConfigurationManager.AppSettings["highWaterMark"]) / 100;
             InitializeComponent();
-            FetchTablespaces();
+            if (FetchTablespaces())
+            {
+                UpdateUsage();
+            } 
             DisplayGauges();
             InitCheckedListBox();
 

@@ -28,7 +28,7 @@ namespace Oracle_Tablespace_Monitor
         private Label tb_d_max;
         private Label tb_d_hwm;
         private Label tb_pct;
-        private Tablespace tb;
+        public Tablespace tb;
 
 
         public Tb_Panel(Tablespace tb, decimal hwm)
