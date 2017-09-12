@@ -24,6 +24,13 @@ namespace Oracle_Tablespace_Monitor
             app = application;
             curr = current*100;
             this.numericUpDown1.Value = current*100;
+
+            selector.Items.Add("GLOBAL");
+            selector.SelectedIndex = 0;
+            foreach (Tablespace tb in application.tbs)
+            {
+                if(tb.Visible) selector.Items.Add(tb.Name);
+            }
         }
     }
 }

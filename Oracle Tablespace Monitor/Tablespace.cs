@@ -21,8 +21,8 @@ namespace Oracle_Tablespace_Monitor
         public void setRateOfGrothInBytes(decimal rogb, decimal hwm)
         {
             this.RateOfGrowthInMB = Convert.ToDouble(rogb)/1024/1024;
-            this.DaysToMax = Math.Round((Max - Used) / RateOfGrowthInMB,2);
-            this.DaysToHwm = Math.Round((Max*Convert.ToDouble(hwm) - Used) / RateOfGrowthInMB,2);
+            this.DaysToMax = Math.Round((Max - Used) / RateOfGrowthInMB);
+            this.DaysToHwm = Math.Round((Max*Convert.ToDouble(hwm) - Used) / RateOfGrowthInMB);
 
             //System.Console.WriteLine(Max + "-> "+ Used + "-> " + RateOfGrowthInMB  + "-> " + hwm);
         }

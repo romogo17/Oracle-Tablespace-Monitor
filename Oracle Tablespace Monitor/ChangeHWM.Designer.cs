@@ -35,6 +35,7 @@ namespace Oracle_Tablespace_Monitor
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.selector = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -43,28 +44,25 @@ namespace Oracle_Tablespace_Monitor
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.SystemColors.Control;
-            this.label1.Location = new System.Drawing.Point(16, 11);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(192, 25);
+            this.label1.Size = new System.Drawing.Size(135, 20);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Porcentaje del HWM";
+            this.label1.Text = "HWM Percentage";
             this.label1.UseMnemonic = false;
             // 
             // numericUpDown1
             // 
-            this.numericUpDown1.Location = new System.Drawing.Point(255, 11);
-            this.numericUpDown1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.numericUpDown1.Location = new System.Drawing.Point(191, 9);
             this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(132, 22);
+            this.numericUpDown1.Size = new System.Drawing.Size(99, 20);
             this.numericUpDown1.TabIndex = 1;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(179, 75);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button1.Location = new System.Drawing.Point(134, 86);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(100, 28);
+            this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 2;
             this.button1.Text = "Aceptar";
             this.button1.UseVisualStyleBackColor = true;
@@ -73,39 +71,46 @@ namespace Oracle_Tablespace_Monitor
             // button2
             // 
             this.button2.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.button2.Location = new System.Drawing.Point(287, 75);
-            this.button2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button2.Location = new System.Drawing.Point(215, 86);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(100, 28);
+            this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 3;
             this.button2.Text = "Cancelar";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // selector
+            // 
+            this.selector.FormattingEnabled = true;
+            this.selector.Location = new System.Drawing.Point(191, 35);
+            this.selector.Name = "selector";
+            this.selector.Size = new System.Drawing.Size(99, 21);
+            this.selector.TabIndex = 4;
+            // 
             // ChangeHWM
             // 
             this.AcceptButton = this.button1;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(27)))), ((int)(((byte)(27)))), ((int)(((byte)(27)))));
             this.CancelButton = this.button2;
-            this.ClientSize = new System.Drawing.Size(403, 118);
+            this.ClientSize = new System.Drawing.Size(304, 121);
             this.ControlBox = false;
+            this.Controls.Add(this.selector);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(421, 165);
+            this.MaximumSize = new System.Drawing.Size(320, 160);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(421, 165);
+            this.MinimumSize = new System.Drawing.Size(320, 160);
             this.Name = "ChangeHWM";
             this.Opacity = 0.9D;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Cambiar HWM";
+            this.Text = "Change HWM";
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -120,7 +125,7 @@ namespace Oracle_Tablespace_Monitor
             if (pct > 0 && pct < 100)
             {
                 //System.Console.WriteLine("Porcentaje {0} y current {1}", pct, curr);
-                app.ChangeHWM(Convert.ToDouble(pct / 100));
+                app.ChangeHWM(Convert.ToDouble(pct / 100), (string) selector.Items[selector.SelectedIndex]);
                 this.Close();
                 this.Dispose();
             }
@@ -144,5 +149,6 @@ namespace Oracle_Tablespace_Monitor
 
         private Application app;
         decimal curr;
+        public System.Windows.Forms.ComboBox selector;
     }
 }

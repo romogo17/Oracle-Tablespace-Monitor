@@ -49,6 +49,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Application));
             this.opcionesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cambiarHWMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -63,15 +64,15 @@
             this.opcionesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.cambiarHWMToolStripMenuItem});
             this.opcionesToolStripMenuItem.Name = "opcionesToolStripMenuItem";
-            this.opcionesToolStripMenuItem.Size = new System.Drawing.Size(83, 24);
-            this.opcionesToolStripMenuItem.Text = "Opciones";
+            this.opcionesToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+            this.opcionesToolStripMenuItem.Text = "Options";
             // 
             // cambiarHWMToolStripMenuItem
             // 
             this.cambiarHWMToolStripMenuItem.Name = "cambiarHWMToolStripMenuItem";
             this.cambiarHWMToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.H)));
-            this.cambiarHWMToolStripMenuItem.Size = new System.Drawing.Size(235, 26);
-            this.cambiarHWMToolStripMenuItem.Text = "Cambiar HWM";
+            this.cambiarHWMToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.cambiarHWMToolStripMenuItem.Text = "Change HWM";
             this.cambiarHWMToolStripMenuItem.Click += new System.EventHandler(this.cambiarHWMToolStripMenuItem_Click);
             // 
             // menuStrip1
@@ -82,17 +83,17 @@
             this.opcionesToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Padding = new System.Windows.Forms.Padding(8, 2, 0, 2);
-            this.menuStrip1.Size = new System.Drawing.Size(1090, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(818, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // myLayout
             // 
             this.myLayout.AutoScroll = true;
-            this.myLayout.Location = new System.Drawing.Point(12, 45);
+            this.myLayout.Location = new System.Drawing.Point(9, 37);
+            this.myLayout.Margin = new System.Windows.Forms.Padding(2);
             this.myLayout.Name = "myLayout";
-            this.myLayout.Size = new System.Drawing.Size(918, 498);
+            this.myLayout.Size = new System.Drawing.Size(688, 405);
             this.myLayout.TabIndex = 17;
             // 
             // tbspChecklist
@@ -101,25 +102,25 @@
             tbspChecklist.BorderStyle = System.Windows.Forms.BorderStyle.None;
             tbspChecklist.ForeColor = System.Drawing.SystemColors.Control;
             tbspChecklist.FormattingEnabled = true;
-            tbspChecklist.Location = new System.Drawing.Point(936, 49);
+            tbspChecklist.Location = new System.Drawing.Point(702, 40);
+            tbspChecklist.Margin = new System.Windows.Forms.Padding(2);
             tbspChecklist.Name = "tbspChecklist";
             tbspChecklist.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            tbspChecklist.Size = new System.Drawing.Size(142, 493);
+            tbspChecklist.Size = new System.Drawing.Size(106, 390);
             tbspChecklist.TabIndex = 18;
             // 
             // Application
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(27)))), ((int)(((byte)(27)))), ((int)(((byte)(27)))));
-            this.ClientSize = new System.Drawing.Size(1090, 556);
+            this.ClientSize = new System.Drawing.Size(818, 461);
             this.Controls.Add(tbspChecklist);
             this.Controls.Add(this.myLayout);
             this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(4);
             this.MaximizeBox = false;
             this.Name = "Application";
             this.Opacity = 0.8D;
@@ -307,7 +308,34 @@
             ch.ShowDialog(this);
         }
 
-        public void ChangeHWM(double pct)
+        public void ChangeHWM(double pct, string target)
+        {
+            if(target == "GLOBAL")
+                ChangeHwmGlobally(pct);
+            else
+            {
+                foreach (Tablespace tb in tbs)
+                {
+                    if (tb.Name == target)
+                    {
+                        tb.updatesRatesWithNewHwm(hwm);
+                    }
+                }
+
+                foreach (Tb_Panel pl in myLayout.Controls)
+                {
+                    if(pl.tb.Name == target)
+                    {
+                        LiveCharts.WinForms.AngularGauge ag = (LiveCharts.WinForms.AngularGauge)pl.Controls[0];
+                        ag.Sections[0].FromValue = ag.ToValue * Convert.ToDouble(Convert.ToDecimal(pct));
+                        pl.Controls[2].Text = pl.tb.DaysToHwm + " days to HWM";
+                        pl.Controls[4].Text = "HWM: " + Math.Round(pl.tb.Max * Convert.ToDouble(Convert.ToDecimal(pct)), 2) + " MB";
+                    }
+                }
+            }
+        }
+
+        private void ChangeHwmGlobally(double pct)
         {
             this.hwm = Convert.ToDecimal(pct);
 
@@ -316,9 +344,10 @@
 
             foreach (Tb_Panel pl in myLayout.Controls)
             {
-                LiveCharts.WinForms.AngularGauge ag = (LiveCharts.WinForms.AngularGauge) pl.Controls[0];
+                LiveCharts.WinForms.AngularGauge ag = (LiveCharts.WinForms.AngularGauge)pl.Controls[0];
                 ag.Sections[0].FromValue = ag.ToValue * Convert.ToDouble(hwm);
-                pl.Controls[2].Text = pl.tb.DaysToHwm + "d to HWM";
+                pl.Controls[2].Text = pl.tb.DaysToHwm + " days to HWM";
+                pl.Controls[4].Text = "HWM: " + Math.Round(pl.tb.Max * Convert.ToDouble(hwm), 2) + " MB";
             }
         }
 
@@ -379,87 +408,8 @@
         private FlowLayoutPanel myLayout;
         System.Windows.Forms.CheckedListBox tbspChecklist;
 
-        List<Tablespace> tbs;
+        public List<Tablespace> tbs;
         private decimal hwm;
-        //private Timer Timer { get; set; }
     }
 
 }
-
-/* Lineas usadas para un timer
- * 
-
-    //The next code simulates data changes every 500 ms
-    Timer = new Timer
-    {
-        Interval = 1000
-    };
-    Timer.Tick += TimerOnTick;
-    Timer.Start();
-
-private void SetAxisLimits(System.DateTime now)
-{
-    myChart.AxisX[0].MaxValue = now.Ticks + TimeSpan.FromSeconds(0).Ticks; // lets force the axis to be 100ms ahead
-    myChart.AxisX[0].MinValue = now.Ticks - TimeSpan.FromSeconds(8).Ticks; //we only care about the last 8 seconds
-}
-
-private void TimerOnTick(object sender, EventArgs eventArgs)
-{
-    var now = System.DateTime.Now;
-    double usedMemory = Convert.ToDouble(GetUsedMemory());
-
-    ChartValues.Add(new MeasureModel
-    {
-        DateTime = now,
-        Value = usedMemory
-    });
-
-    SetAxisLimits(now);
-
-    //  definir si hay un pico de memoria
-    if(usedMemory > Double.Parse(label2.Text))
-    {
-        label2.Text = Decimal.Round((decimal)usedMemory, 10).ToString();
-        //label3.Text = now.ToString("hh:mm");
-        label3.Text = now.ToShortTimeString();
-
-        DataSet ds = GetUsersAtAlert();
-
-        bool flag = false;
-        if (ds.Tables.Count == 0) flag = true;
-        else if (!(ds.Tables[0].Rows.Count > 0)) flag = true;
-        if (!flag)
-        {
-            DataRow row = ds.Tables[0].Rows[0];
-            label6.Text = (string)row["USERNAME"];
-            label8.Text = (string)row["SQL_ID"];
-            label10.Text = Convert.ToString(row["HASH_VALUE"]);
-            label13.Text = Convert.ToString(Convert.ToDouble(row["MEMORY"]) / 1024);
-        }
-
-
-
-    }
-
-    // verificar si hay una nueva alerta
-    if(usedMemory > Convert.ToDouble(sgaSize * hwm))
-    {
-        if (!enAlerta)
-        {
-            enAlerta = true;
-
-            string exeRuntimeDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string subDirectory = System.IO.Path.Combine(exeRuntimeDirectory, "alertas");
-            if (!System.IO.Directory.Exists(subDirectory))
-            {
-                System.IO.Directory.CreateDirectory(subDirectory);
-            }
-            GetUsersAtAlert().WriteXml(subDirectory + "\\" + now.ToFileTime() + ".xml");
-
-        }
-    } else { enAlerta = false; }
-
-    //lets only use the last 30 values
-    if (ChartValues.Count > 30) ChartValues.RemoveAt(0);
-}
-*/

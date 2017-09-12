@@ -28,6 +28,7 @@ namespace Oracle_Tablespace_Monitor
         private Label tb_d_max;
         private Label tb_d_hwm;
         private Label tb_pct;
+        private Label tb_hwm;
         public Tablespace tb;
 
 
@@ -37,6 +38,7 @@ namespace Oracle_Tablespace_Monitor
             this.gauge = new LiveCharts.WinForms.AngularGauge();
             this.tb_name = new Label();
             this.tb_pct = new Label();
+            this.tb_hwm = new Label();
             this.tb_d_hwm = new Label();
             this.tb_d_max = new Label();
             this.SuspendLayout();
@@ -46,14 +48,15 @@ namespace Oracle_Tablespace_Monitor
             // 
             // panel
             // 
-            this.Controls.Add(gauge);
-            this.Controls.Add(tb_d_max);
-            this.Controls.Add(tb_d_hwm);
-            this.Controls.Add(tb_pct);
+            this.Controls.Add(gauge);//0
+            this.Controls.Add(tb_d_max);//1
+            this.Controls.Add(tb_d_hwm);//2
+            this.Controls.Add(tb_pct);//3
+            this.Controls.Add(tb_hwm);//4
             this.Controls.Add(tb_name);
             this.Location = new System.Drawing.Point(3, 3);
             this.Name = "panel_" + tb.Name;
-            this.Size = new System.Drawing.Size(300, 160);
+            this.Size = new System.Drawing.Size(330, 180);
             this.TabIndex = 2;
             // 
             // tb_name
@@ -71,7 +74,7 @@ namespace Oracle_Tablespace_Monitor
             // 
             gauge.Location = new System.Drawing.Point(3, 3);
             gauge.Name = "gauge_" + tb.Name;
-            gauge.Size = new System.Drawing.Size(160, 160);
+            gauge.Size = new System.Drawing.Size(160, 180);
             gauge.TabIndex = 1;
             gauge.Text = "angularGauge_" + tb.Name;
 
@@ -103,31 +106,42 @@ namespace Oracle_Tablespace_Monitor
             this.tb_pct.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.tb_pct.Location = new System.Drawing.Point(170, 30);
             this.tb_pct.Name = "tb_pct_" + tb.Name;
-            this.tb_pct.Size = new System.Drawing.Size(57, 18);
+            this.tb_pct.Size = new System.Drawing.Size(100, 18);
             this.tb_pct.TabIndex = 3;
-            this.tb_pct.Text = Math.Round((tb.Used / tb.Max) * 100, 4) + "%";
+            this.tb_pct.Text = "Usage: " +  Math.Round((tb.Used / tb.Max) * 100, 2) + "% (" + Math.Round(tb.Used, 2) + " MB)";
+            // 
+            // tb_hwm
+            // 
+            this.tb_hwm.AutoSize = true;
+            this.tb_hwm.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_hwm.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.tb_hwm.Location = new System.Drawing.Point(170, 50);
+            this.tb_hwm.Name = "tb_pct_" + tb.Name;
+            this.tb_hwm.Size = new System.Drawing.Size(90, 18);
+            this.tb_hwm.TabIndex = 3;
+            this.tb_hwm.Text = "HWM: " + Math.Round(tb.Max*Convert.ToDouble(hwm), 2) + " MB";
             // 
             // tb_d_hwm
             // 
             this.tb_d_hwm.AutoSize = true;
             this.tb_d_hwm.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tb_d_hwm.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.tb_d_hwm.Location = new System.Drawing.Point(170, 55);
+            this.tb_d_hwm.Location = new System.Drawing.Point(170, 75);
             this.tb_d_hwm.Name = "tb_d_hwm_" + tb.Name;
             this.tb_d_hwm.Size = new System.Drawing.Size(84, 18);
             this.tb_d_hwm.TabIndex = 4;
-            this.tb_d_hwm.Text = tb.DaysToHwm + "d to HWM";
+            this.tb_d_hwm.Text = tb.DaysToHwm + " days to HWM";
             // 
             // tb_d_max
             // 
             this.tb_d_max.AutoSize = true;
             this.tb_d_max.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tb_d_max.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.tb_d_max.Location = new System.Drawing.Point(170, 75);
+            this.tb_d_max.Location = new System.Drawing.Point(170, 95);
             this.tb_d_max.Name = "tb_d_max";
             this.tb_d_max.Size = new System.Drawing.Size(77, 18);
             this.tb_d_max.TabIndex = 5;
-            this.tb_d_max.Text = tb.DaysToMax + "d to MAX";
+            this.tb_d_max.Text = tb.DaysToMax + " days to MAX";
 
 
 

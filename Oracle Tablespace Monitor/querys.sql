@@ -20,9 +20,7 @@ GRANT READ, WRITE ON DIRECTORY MY_DIR TO DEV;
 GRANT SELECT ON DBA_SEGMENTS TO DEV;
 GRANT SELECT ON USER_SEGMENTS TO DEV;
 
-
-
-
+-- Informacion de uso de los tablespaces
 --http://dbaforums.org/oracle/lofiversion/index.php?t13112.html
 CREATE OR REPLACE FUNCTION get_tablespace_info
   RETURN SYS_REFCURSOR IS
@@ -56,31 +54,77 @@ CREATE OR REPLACE FUNCTION get_tablespace_info
 /
 
 
+
+
+-- Solucion de TOM
+
+ALTER SYSTEM SET control_management_pack_access = 'DIAGNOSTIC+TUNING';
+
+
+SELECT *
+FROM (
+       SELECT
+         dt.tablespace_name,
+         dhs.begin_interval_time                   AS     "CURRENT_TIMESTAMP",
+         trunc(dhtsu.tablespace_usedsize * dt.block_size) bytes,
+         trunc(dhtsu.tablespace_size * dt.block_size)     bytes_TOTAL,
+         row_number()
+         OVER (
+           PARTITION BY dt.tablespace_name
+           ORDER BY dhs.begin_interval_time DESC ) AS     rank
+       FROM
+         dba_hist_tbspc_space_usage dhtsu,
+         v$tablespace vts,
+         dba_tablespaces dt,
+         dba_hist_snapshot dhs
+       WHERE dhtsu.snap_id = dhs.snap_id
+             AND dhtsu.tablespace_id = vts.ts#
+             AND vts.name = dt.tablespace_name
+     ) result
+WHERE rank < 2;
+
+-- Solucion con segments considerando indices
 SELECT
-        tablespace_name,
-        sum(bytes) "BYTES",
-        current_timestamp
+  tablespace_name,
+  sum(bytes) "BYTES",
+  current_timestamp
 FROM (
   SELECT
     tablespace_name,
     sum(bytes) "BYTES",
     current_timestamp
-  FROM user_segments
-  WHERE segment_type = 'INDEX' OR segment_type = 'TABLE'
+  FROM
+    (SELECT
+       segment_name "TABLA",
+       tablespace_name
+     FROM dba_segments
+     WHERE segment_type = 'TABLE') ts,
+    (SELECT
+       "Indice",
+       "TablaIndex",
+       "TS Index",
+       bytes
+     FROM dba_segments seg,
+       (SELECT
+          index_name      "Indice",
+          table_name      "TablaIndex",
+          tablespace_name "TS Index"
+        FROM dba_indexes)
+     WHERE seg.segment_type = 'INDEX' AND seg.segment_name = "Indice") indB
+  WHERE ts."TABLA" = indB."TablaIndex" AND ts.tablespace_name = indB."TS Index"
   GROUP BY tablespace_name, current_timestamp
   UNION ALL
   SELECT
-    tablespace_name,
-    sum(bytes) "BYTES",
+    tablespace_name "TS Table",
+    sum(bytes)      "BYTES",
     current_timestamp
   FROM dba_segments
-  WHERE segment_type = 'INDEX' OR segment_type = 'TABLE'
-  GROUP BY tablespace_name, current_timestamp)
-      GROUP BY tablespace_name, current_timestamp;
+  WHERE segment_type = 'TABLE'
+  GROUP BY tablespace_name, current_timestamp
+)
+GROUP BY tablespace_name, current_timestamp;
 
-
-
-
+-- Consumo en bytes de los tablespaces
 CREATE OR REPLACE PROCEDURE save_tablespace_usage
 IS
   v_ctx  DBMS_XMLGEN.CTXHANDLE;
@@ -88,35 +132,33 @@ IS
   v_xml  CLOB;
   v_more BOOLEAN := TRUE;
   fecha  VARCHAR2(100);
-
   BEGIN
-
     fecha := to_char(sysdate, 'YYYY-MM-DD HH MI SS AM') || '.xml';
     DBMS_OUTPUT.put_line(fecha);
     -- Create XML context.
     v_ctx := DBMS_XMLGEN.newcontext(
-      'SELECT
-        tablespace_name,
-        sum(bytes) "BYTES",
-        current_timestamp
-      FROM
-      (
-        SELECT
-          tablespace_name,
-          sum(bytes) "BYTES",
-          current_timestamp
-        FROM user_segments
-        WHERE segment_type = ''INDEX'' OR segment_type = ''TABLE''
-        GROUP BY tablespace_name, current_timestamp
-        UNION ALL
-        SELECT
-          tablespace_name,
-          sum(bytes) "BYTES",
-          current_timestamp
-        FROM dba_segments
-        WHERE segment_type = ''INDEX'' OR segment_type = ''TABLE''
-      GROUP BY tablespace_name, current_timestamp)
-      GROUP BY tablespace_name, current_timestamp');
+        'SELECT *
+      FROM (
+           SELECT
+           dt.tablespace_name,
+           dhs.begin_interval_time                   AS     "CURRENT_TIMESTAMP",
+           trunc(dhtsu.tablespace_usedsize * dt.block_size) bytes,
+           trunc(dhtsu.tablespace_size * dt.block_size)     bytes_TOTAL,
+           row_number()
+           OVER (
+             PARTITION BY dt.tablespace_name
+             ORDER BY dhs.begin_interval_time DESC ) AS     rank
+           FROM
+           dba_hist_tbspc_space_usage dhtsu,
+           v$tablespace vts,
+           dba_tablespaces dt,
+           dba_hist_snapshot dhs
+           WHERE dhtsu.snap_id = dhs.snap_id
+             AND dhtsu.tablespace_id = vts.ts#
+             AND vts.name = dt.tablespace_name
+         ) result
+      WHERE rank < 2');
+
     v_xml := DBMS_XMLGEN.getxml(v_ctx);
     DBMS_XMLGEN.closecontext(v_ctx);
     -- Output XML document to file.
@@ -131,17 +173,17 @@ IS
       END IF;
     END LOOP;
     UTL_FILE.fclose(v_file);
-
   END;
 /
 
 
+-- JOB para guardar el consumo
 BEGIN
-DBMS_SCHEDULER.CREATE_JOB (
- job_name        => 'TrabajoTablespace',
- job_type        => 'STORED_PROCEDURE',
- job_action      => 'save_tablespace_usage',
- start_date      => '7-SEP-17 10.30.00PM',
- repeat_interval => 'FREQ=MINUTELY;INTERVAL=2;',
- enabled         => TRUE);
+  DBMS_SCHEDULER.CREATE_JOB(
+      job_name        => 'TrabajoTablespace',
+      job_type        => 'STORED_PROCEDURE',
+      job_action      => 'save_tablespace_usage',
+      start_date      => '11-SEP-17 6.30.00PM',
+      repeat_interval => 'FREQ=DAILY;',
+      enabled         => TRUE);
 END;
