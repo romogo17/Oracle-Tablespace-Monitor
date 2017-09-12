@@ -76,7 +76,6 @@ CREATE OR REPLACE FUNCTION get_tablespace_info
 /
 
 
-
 SELECT
         tablespace_name,
         sum(bytes) "BYTES",
@@ -98,8 +97,6 @@ FROM (
   WHERE segment_type = 'INDEX' OR segment_type = 'TABLE'
   GROUP BY tablespace_name, current_timestamp)
       GROUP BY tablespace_name, current_timestamp;
-
-
 
 
 CREATE OR REPLACE PROCEDURE save_tablespace_usage
@@ -167,8 +164,52 @@ DBMS_SCHEDULER.CREATE_JOB (
  enabled         => TRUE);
 END;
 
+```
 
 
+## Segun la respuesta de TOM
+
+``` sql
+alter system set control_management_pack_access='DIAGNOSTIC+TUNING';
+
+
+select * from (
+select 
+   dhs.begin_interval_time,
+   dt.tablespace_name,
+   trunc(dhtsu.tablespace_size*dt.block_size)  bytes,
+   trunc(dhtsu.tablespace_usedsize*dt.block_size) bytes_used,
+   row_number()
+            OVER (
+              PARTITION BY dt.tablespace_name
+              ORDER BY dhs.begin_interval_time DESC ) AS rank
+from
+   dba_hist_tbspc_space_usage dhtsu,
+   v$tablespace vts,
+   dba_tablespaces dt,
+   dba_hist_snapshot dhs
+where dhtsu.snap_id = dhs.snap_id
+and   dhtsu.tablespace_id = vts.ts#
+and   vts.name          = dt.tablespace_name 
+) aaa where rank < 2;
+
+
+
+
+select 
+   dhs.begin_interval_time,
+   dt.tablespace_name,
+   trunc(dhtsu.tablespace_size*dt.block_size/1024/1024/1024)  gb,
+   trunc(dhtsu.tablespace_usedsize*dt.block_size/1024/1024/1024) gb_used
+from
+   dba_hist_tbspc_space_usage dhtsu,
+   v$tablespace vts,
+   dba_tablespaces dt,
+   dba_hist_snapshot dhs
+where dhtsu.snap_id = dhs.snap_id
+and   dhtsu.tablespace_id = vts.ts#
+and   vts.name          = dt.tablespace_name 
+order by 2,1;
 
 
 
