@@ -211,19 +211,22 @@
             foreach (XmlNode node in doc_last.DocumentElement.SelectSingleNode("/ROWSET"))
             {
                 string tb_name = Convert.ToString(node.FirstChild.InnerText);
-                decimal tb_usage = Convert.ToDecimal(node.ChildNodes[1].InnerText);
+                decimal tb_usage = Convert.ToDecimal(node.ChildNodes[2].InnerText);
                 decimal tb_usage_sub = 0;
 
                 foreach (XmlNode node_seccond in doc_seccond.DocumentElement.SelectSingleNode("/ROWSET"))
                 {
                     if (Convert.ToString(node_seccond.FirstChild.InnerText) == tb_name)
                     {
-                        tb_usage_sub = tb_usage - Convert.ToDecimal(node_seccond.ChildNodes[1].InnerText);
+                        tb_usage_sub = tb_usage - Convert.ToDecimal(node_seccond.ChildNodes[2].InnerText);
                         //System.Console.WriteLine(tb_name + " -> " + tb_usage + "->" + tb_usage_sub);
                     }                    
                 }
 
-                tbs.Find(x => x.Name == tb_name).setRateOfGrothInBytes(tb_usage_sub, hwm);
+                if (tb_name != "UNDOTBS1" && tb_name != "TEMP")
+                {
+                    tbs.Find(x => x.Name == tb_name).setRateOfGrothInBytes(tb_usage_sub, hwm);
+                }
             }
 
             return true;
